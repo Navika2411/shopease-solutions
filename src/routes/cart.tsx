@@ -1,0 +1,78 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Minus, Plus, Trash2 } from "lucide-react";
+import { useCart } from "@/lib/cart";
+
+export const Route = createFileRoute("/cart")({
+  component: Cart,
+  head: () => ({
+    meta: [
+      { title: "Your cart — ShopEase" },
+      { name: "description", content: "Review items in your ShopEase cart and proceed to secure checkout." },
+    ],
+  }),
+});
+
+function Cart() {
+  const { items, setQty, remove, total, clear } = useCart();
+  const shipping = total > 75 || total === 0 ? 0 : 8;
+
+  if (items.length === 0) {
+    return (
+      <section className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <h1 className="font-display text-5xl">Your cart is empty</h1>
+        <p className="mt-4 text-muted-foreground">Once you add something you love, it'll show up here.</p>
+        <Link to="/products" className="mt-8 inline-flex h-11 items-center rounded-full bg-foreground px-6 text-sm text-background">Start shopping</Link>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1.5fr_1fr]">
+      <div>
+        <h1 className="font-display text-4xl">Shopping cart</h1>
+        <ul className="mt-8 divide-y divide-border border-y border-border">
+          {items.map(({ product, qty }) => (
+            <li key={product.id} className="flex gap-4 py-6">
+              <div className="h-28 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-secondary">
+                <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+              </div>
+              <div className="flex flex-1 flex-col justify-between">
+                <div className="flex justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{product.category}</p>
+                    <p className="font-display text-lg">{product.name}</p>
+                  </div>
+                  <p className="font-medium">${product.price * qty}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center rounded-full border border-border">
+                    <button onClick={() => setQty(product.id, qty - 1)} className="grid h-8 w-8 place-items-center text-muted-foreground hover:text-foreground"><Minus className="h-3 w-3" /></button>
+                    <span className="w-8 text-center text-sm">{qty}</span>
+                    <button onClick={() => setQty(product.id, qty + 1)} className="grid h-8 w-8 place-items-center text-muted-foreground hover:text-foreground"><Plus className="h-3 w-3" /></button>
+                  </div>
+                  <button onClick={() => remove(product.id)} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
+                    <Trash2 className="h-3 w-3" /> Remove
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <button onClick={clear} className="mt-6 text-sm text-muted-foreground hover:text-foreground">Clear cart</button>
+      </div>
+
+      <aside className="h-fit rounded-2xl border border-border bg-card p-6">
+        <h2 className="font-display text-2xl">Order summary</h2>
+        <dl className="mt-6 space-y-3 text-sm">
+          <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd>${total}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted-foreground">Shipping</dt><dd>{shipping === 0 ? "Free" : `$${shipping}`}</dd></div>
+          <div className="flex justify-between border-t border-border pt-3 text-base font-medium"><dt>Total</dt><dd>${total + shipping}</dd></div>
+        </dl>
+        <button className="mt-6 h-12 w-full rounded-full bg-primary text-sm font-medium text-primary-foreground transition hover:opacity-90">
+          Proceed to checkout
+        </button>
+        <p className="mt-3 text-center text-xs text-muted-foreground">Secure SSL-encrypted payment</p>
+      </aside>
+    </section>
+  );
+}
