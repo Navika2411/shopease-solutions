@@ -44,7 +44,7 @@ function Home() {
           </div>
           <div className="absolute -bottom-6 -left-6 hidden rounded-2xl border border-border bg-card p-5 shadow-lg md:block">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Free shipping</p>
-            <p className="mt-1 font-display text-xl">On orders over $75</p>
+            <p className="mt-1 font-display text-xl">On orders over ₹5,000</p>
           </div>
         </div>
       </section>

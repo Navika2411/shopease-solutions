@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
+import { formatINR } from "@/lib/products";
 
 export const Route = createFileRoute("/cart")({
   component: Cart,
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/cart")({
 
 function Cart() {
   const { items, setQty, remove, total, clear } = useCart();
-  const shipping = total > 75 || total === 0 ? 0 : 8;
+  const shipping = total > 5000 || total === 0 ? 0 : 199;
 
   if (items.length === 0) {
     return (
@@ -42,7 +43,7 @@ function Cart() {
                     <p className="text-xs uppercase tracking-wider text-muted-foreground">{product.category}</p>
                     <p className="font-display text-lg">{product.name}</p>
                   </div>
-                  <p className="font-medium">${product.price * qty}</p>
+                  <p className="font-medium">{formatINR(product.price * qty)}</p>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="inline-flex items-center rounded-full border border-border">
@@ -64,9 +65,9 @@ function Cart() {
       <aside className="h-fit rounded-2xl border border-border bg-card p-6">
         <h2 className="font-display text-2xl">Order summary</h2>
         <dl className="mt-6 space-y-3 text-sm">
-          <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd>${total}</dd></div>
-          <div className="flex justify-between"><dt className="text-muted-foreground">Shipping</dt><dd>{shipping === 0 ? "Free" : `$${shipping}`}</dd></div>
-          <div className="flex justify-between border-t border-border pt-3 text-base font-medium"><dt>Total</dt><dd>${total + shipping}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd>{formatINR(total)}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted-foreground">Shipping</dt><dd>{shipping === 0 ? "Free" : formatINR(shipping)}</dd></div>
+          <div className="flex justify-between border-t border-border pt-3 text-base font-medium"><dt>Total</dt><dd>{formatINR(total + shipping)}</dd></div>
         </dl>
         <button className="mt-6 h-12 w-full rounded-full bg-primary text-sm font-medium text-primary-foreground transition hover:opacity-90">
           Proceed to checkout

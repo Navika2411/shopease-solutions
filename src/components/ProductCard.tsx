@@ -1,5 +1,5 @@
 import { useCart } from "@/lib/cart";
-import type { Product } from "@/lib/products";
+import { formatINR, type Product } from "@/lib/products";
 import { Plus } from "lucide-react";
 
 export function ProductCard({ product }: { product: Product }) {
@@ -26,7 +26,7 @@ export function ProductCard({ product }: { product: Product }) {
           <p className="text-xs uppercase tracking-wider text-muted-foreground">{product.category}</p>
           <h3 className="mt-0.5 font-display text-lg leading-tight">{product.name}</h3>
         </div>
-        <p className="whitespace-nowrap font-medium">${product.price}</p>
+        <p className="whitespace-nowrap font-medium">{formatINR(product.price)}</p>
       </div>
     </div>
   );
