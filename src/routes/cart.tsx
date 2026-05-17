@@ -1,7 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Minus, Plus, Trash2, CheckCircle, ShoppingBag, Loader2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { formatINR } from "@/lib/products";
+import { useAuth } from "@/lib/auth";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/cart")({
   component: Cart,
@@ -15,7 +18,94 @@ export const Route = createFileRoute("/cart")({
 
 function Cart() {
   const { items, setQty, remove, total, clear } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [isOrdered, setIsOrdered] = useState(false);
+  const [orderNumber, setOrderId] = useState("");
+  
   const shipping = total > 5000 || total === 0 ? 0 : 199;
+
+  const handleCheckout = () => {
+    // 1. Authorization Gate before buying/checking out
+    if (!user) {
+      toast.error("Authentication required", {
+        description: "Please sign in to your account before purchasing a product.",
+      });
+      // Redirect to /login page with a redirect back to /cart
+      navigate({ 
+        to: "/login", 
+        search: { redirect: "/cart" } 
+      });
+      return;
+    }
+
+    // 2. Process mock payment and place order
+    setCheckoutLoading(true);
+    setTimeout(() => {
+      const mockOrderNo = "SE-" + Math.floor(100000 + Math.random() * 900000);
+      setOrderId(mockOrderNo);
+      setIsOrdered(true);
+      clear(); // Empty the cart
+      setCheckoutLoading(false);
+      
+      toast.success("Order Placed Successfully!", {
+        description: `Thank you for shopping! Order number: ${mockOrderNo}`,
+      });
+    }, 1500);
+  };
+
+  // If order is placed successfully, render confirmation screen
+  if (isOrdered) {
+    const today = new Date();
+    const deliveryDate = new Date(today);
+    deliveryDate.setDate(today.getDate() + 4); // Delivery in 4 days
+    
+    const formattedDeliveryDate = deliveryDate.toLocaleDateString("en-IN", {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    return (
+      <section className="mx-auto max-w-xl px-6 py-20 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-md">
+          <CheckCircle className="h-10 w-10 animate-bounce" />
+        </div>
+        
+        <h1 className="mt-6 font-display text-4xl font-bold text-foreground">Order Confirmed!</h1>
+        <p className="mt-3 text-muted-foreground">
+          Thank you for buying from ShopEase, <span className="font-semibold text-foreground">{user?.displayName || user?.email}</span>. Your payment was verified and processed securely.
+        </p>
+
+        <div className="mt-8 rounded-2xl border border-border bg-card p-6 text-left shadow-sm">
+          <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">Order Details</h2>
+          <div className="mt-4 space-y-3 text-sm">
+            <div className="flex justify-between border-b border-border/50 pb-2.5">
+              <span className="text-muted-foreground">Order Number</span>
+              <span className="font-mono font-medium text-foreground">{orderNumber}</span>
+            </div>
+            <div className="flex justify-between border-b border-border/50 pb-2.5">
+              <span className="text-muted-foreground">Delivery Method</span>
+              <span className="font-medium text-foreground">Standard Delivery</span>
+            </div>
+            <div className="flex justify-between pt-1">
+              <span className="text-muted-foreground">Estimated Delivery</span>
+              <span className="font-medium text-foreground">{formattedDeliveryDate}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-3">
+          <Link to="/products" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-sm font-medium text-background transition hover:opacity-90 shadow-md">
+            <ShoppingBag className="h-4 w-4" /> Continue Shopping
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -69,8 +159,16 @@ function Cart() {
           <div className="flex justify-between"><dt className="text-muted-foreground">Shipping</dt><dd>{shipping === 0 ? "Free" : formatINR(shipping)}</dd></div>
           <div className="flex justify-between border-t border-border pt-3 text-base font-medium"><dt>Total</dt><dd>{formatINR(total + shipping)}</dd></div>
         </dl>
-        <button className="mt-6 h-12 w-full rounded-full bg-primary text-sm font-medium text-primary-foreground transition hover:opacity-90">
-          Proceed to checkout
+        <button 
+          onClick={handleCheckout}
+          disabled={checkoutLoading}
+          className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50 cursor-pointer shadow-md"
+        >
+          {checkoutLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            "Proceed to checkout"
+          )}
         </button>
         <p className="mt-3 text-center text-xs text-muted-foreground">Secure SSL-encrypted payment</p>
       </aside>
